@@ -4,7 +4,6 @@ from datetime import datetime
 
 from app.db.models import Booking
 from app.db.models import Room
-from app.schemas.room import RoomCreate
 
 def get_room(db: Session, room_number: int) -> Room:
     return db.query(Room).filter(Room.room_number == room_number).first()
@@ -23,25 +22,32 @@ def get_available_rooms_capacity(db: Session, min_capacity: int) -> List[Room]:
 
 def get_available_rooms_time(db: Session, min_capacity: int, desired_start: datetime, desired_end: datetime) -> List[Room]:
   # subquery to get conflicting bookings
-  # then check that the room id is not in the subquery
   subquery = (
       db.query(Booking.room_number)
       .filter(
-          Booking.start_time <= desired_start,
-          Booking.end_time > desired_end
-      ).filter(
-          Booking.start_time < desired_start,
-          Booking.end_time > desired_end
-      ).filter(
-          Booking.start_time > desired_start,
-          Booking.end_time <= desired_end
+            Booking.start_time < desired_end,
+            Booking.end_time > desired_start
       )
       .subquery()
   )
 
+  # then return the rooms that do not appear in the subquery
   return get_rooms_capacity(db, min_capacity).filter(Room.room_number.not_in(subquery)).all()
 
-def convert_to_datetime(date_str: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> Optional[datetime]:
+def room_is_available(db: Session, room_number: str, desired_start: datetime, desired_end: datetime) -> bool:
+    conflicting_bookings = (
+        db.query(Booking)
+        .filter(
+            Booking.room_number == room_number,
+            Booking.start_time < desired_end,
+            Booking.end_time > desired_start
+        )
+        .all()
+    )
+    return not conflicting_bookings 
+
+
+def convert_to_datetime(date_str: str, fmt: str = "%Y-%m-%dT%H:%M:%S") -> Optional[datetime]:
     # checks that its a valid datetime str 
     try:
         dt = datetime.strptime(date_str, fmt)
@@ -49,3 +55,9 @@ def convert_to_datetime(date_str: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> Option
             return dt
     except ValueError:
         return None
+    
+def convert_times(start_datestr: str, end_datestr: str):
+    valid_start = convert_to_datetime(start_datestr)
+    valid_end = convert_to_datetime(end_datestr)
+    if valid_start and valid_end:
+        return {"start_datetime": valid_start, "end_datetime": valid_end }

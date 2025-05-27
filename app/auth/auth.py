@@ -5,15 +5,9 @@ from sqlalchemy.orm import Session
 from pytz import timezone
 
 from app.crud.user import get_user_by_username
-from app.schemas.user import UserOut
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_SECONDS
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_username(token: str) -> str:
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    username = payload.get("sub")
-    return username
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
