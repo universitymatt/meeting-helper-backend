@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import routes
+from app.api.booking_controller import booking_router
+from app.api.room_controller import room_router
+from app.api.user_controller import user_router
 from app.db.database import Base, engine
 
 # Create tables on startup
@@ -16,4 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routes.router)
+app.include_router(booking_router)
+app.include_router(room_router)
+app.include_router(user_router)
