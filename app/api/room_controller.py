@@ -13,9 +13,7 @@ def get_available_rooms(room: GetRooms = Depends(), db: Session = Depends(get_db
     if room.start_datestr and room.end_datestr:
         # check times are valid
         valid_times = convert_times(room.start_datestr, room.end_datestr)
-        if valid_times:
-            return get_available_rooms_time(db, room.min_capacity, valid_times.start_datetime, valid_times.end_datetime)
-        raise HTTPException(status_code=400, detail="Desired start or end times are invalid")
+        return get_available_rooms_time(db, room.min_capacity, valid_times["start_datetime"], valid_times["end_datetime"])
     else:
         # get rooms based on time and capacity = 0
         return get_available_rooms_capacity(db, room.min_capacity)

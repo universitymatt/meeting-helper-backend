@@ -1,6 +1,8 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+from dateutil.parser import parse
 
 from app.db.models import Booking
 from app.db.models import Room
@@ -47,10 +49,10 @@ def room_is_available(db: Session, room_number: str, desired_start: datetime, de
     return not conflicting_bookings 
 
 
-def convert_to_datetime(date_str: str, fmt: str = "%Y-%m-%dT%H:%M:%S") -> Optional[datetime]:
+def convert_to_datetime(date_str: str) -> Optional[datetime]:
     # checks that its a valid datetime str 
     try:
-        dt = datetime.strptime(date_str, fmt)
+        dt = parse(date_str)
         if dt.minute % 15 == 0:
             return dt
     except ValueError:
@@ -58,6 +60,12 @@ def convert_to_datetime(date_str: str, fmt: str = "%Y-%m-%dT%H:%M:%S") -> Option
     
 def convert_times(start_datestr: str, end_datestr: str):
     valid_start = convert_to_datetime(start_datestr)
+    print(valid_start)
     valid_end = convert_to_datetime(end_datestr)
-    if valid_start and valid_end:
-        return {"start_datetime": valid_start, "end_datetime": valid_end }
+    if not(valid_start and valid_end):
+        raise HTTPException(status_code=400, detail="Desired start or end times are invalid")
+    if valid_start <= datetime.now(valid_start.tzinfo):
+        raise HTTPException(status_code=400, detail="Start must be in the future")
+    if valid_start >= valid_end:
+        raise HTTPException(status_code=400, detail="Start must be before end")
+    return {"start_datetime": valid_start, "end_datetime": valid_end }
