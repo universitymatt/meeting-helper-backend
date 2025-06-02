@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 class UserCreate(BaseModel):
     username: str
@@ -6,8 +7,9 @@ class UserCreate(BaseModel):
     name: str
 
 class UserOut(BaseModel):
-    id: int
+    name: str
     username: str
+    roles: List[str]
 
     class Config:
-        from_attributes = True
+        from_attributes = True 
