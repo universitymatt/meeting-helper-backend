@@ -1,5 +1,5 @@
 from app.auth.utils import require_role
-from app.crud.room import convert_times, create_room_in_db, get_available_rooms_capacity, get_available_rooms_time, get_room
+from app.crud.room import convert_times, create_room_in_db, delete_room_in_db, get_available_rooms_capacity, get_available_rooms_time, get_room
 from app.api.get_db import get_db
 from app.auth.utils import get_current_user
 from app.db.models import Room, User
@@ -34,3 +34,15 @@ def create_room(room: RoomCreate, _: User = Depends(require_role(["admin"])), db
     new_room = Room(**room.model_dump())
     new_room = create_room_in_db(db, new_room)
     return new_room
+
+@room_router.delete("/{room_number}")
+def delete_room(room_number: str, _: User = Depends(require_role(["admin"])), db: Session = Depends(get_db)):
+    room = get_room(db, room_number)
+    if not room:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Room with room number {room_number} not found")
+    
+    try: 
+        delete_room_in_db(db, room)
+        return {"message": f"Room {room_number} deleted successfully", "room_number": room_number}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error occurred deleting Room {room_number}")

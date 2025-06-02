@@ -15,6 +15,11 @@ def create_room_in_db(db: Session, room: Room) -> Room:
     db.refresh(room)
     return room
 
+def delete_room_in_db(db: Session, room: Room) -> Room:
+    db.delete(room)
+    db.commit()
+    return room
+
 def get_rooms_capacity(db: Session, min_capacity: int):
     return db.query(Room).filter(Room.capacity >= min_capacity)
 

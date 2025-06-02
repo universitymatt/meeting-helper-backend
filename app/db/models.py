@@ -20,7 +20,10 @@ class Room(Base):
     description: Mapped[str] = mapped_column(String)
     request_only: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    bookings: Mapped[List["Booking"]] = relationship(back_populates="room")
+    bookings: Mapped[List["Booking"]] = relationship(
+        back_populates="room", 
+        cascade="all, delete-orphan"
+    )
 
 class User(Base):
     __tablename__ = "user_table"
@@ -30,7 +33,10 @@ class User(Base):
     username: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
 
-    bookings: Mapped[List["Booking"]] = relationship(back_populates="user")
+    bookings: Mapped[List["Booking"]] = relationship(
+        back_populates="user", 
+        cascade="all, delete-orphan"
+    )
     roles: Mapped[List["Role"]] = relationship(
         secondary=user_role_table,
         back_populates="users"
@@ -43,7 +49,7 @@ class User(Base):
 class Booking(Base):
     __tablename__ = "booking_table"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # Added Integer type
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user_table.id"), nullable=False)
     room_number: Mapped[str] = mapped_column(ForeignKey("room_table.room_number"), nullable=False)
     start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
