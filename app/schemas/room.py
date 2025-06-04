@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Optional
+from typing import List, Optional
 from app.schemas.booking import Times
 
 class GetRooms(BaseModel):
@@ -18,6 +18,7 @@ class RoomCreate(BaseModel):
   capacity: int
   description: str | None = Field(default = None)
   request_only: bool | None = Field(default = None)
+  roles: List[str] | None = Field(default = None)
 
 
 class RoomOut(BaseModel):

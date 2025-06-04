@@ -29,3 +29,9 @@ pip install -r requirements.txt
 ```bash
 uvicorn app.main:app --reload
 ```
+
+## To seed the database
+
+```bash
+python -m app.db.seed_db
+```

@@ -9,7 +9,11 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
     name: str
     username: str
-    roles: List[str]
+    role_names: List[str]
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+class PutRoles(BaseModel):
+    username: str
+    roles: List[str]
