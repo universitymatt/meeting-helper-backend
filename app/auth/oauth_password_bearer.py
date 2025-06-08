@@ -4,6 +4,7 @@ from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from typing import Optional, Dict
 
+
 class OAuth2PasswordBearerWithCookie(OAuth2):
     def __init__(
         self,
@@ -18,7 +19,9 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
         super().__init__(flows=flows, scheme_name=scheme_name, auto_error=auto_error)
 
     async def __call__(self, request: Request) -> Optional[str]:
-        authorization: str = request.cookies.get("access_token")  #changed to accept access token from httpOnly Cookie
+        authorization: str = request.cookies.get(
+            "access_token"
+        )  # changed to accept access token from httpOnly Cookie
 
         scheme, param = get_authorization_scheme_param(authorization)
         if not authorization or scheme.lower() != "bearer":

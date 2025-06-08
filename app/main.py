@@ -5,11 +5,16 @@ from app.api.room_controller import room_router
 from app.api.user_controller import user_router
 from app.api.role_controller import role_router
 from app.db.database import Base, engine
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Create tables on startup
 Base.metadata.create_all(bind=engine)
 
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,

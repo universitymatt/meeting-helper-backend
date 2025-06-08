@@ -1,14 +1,16 @@
-from typing import List
 from fastapi import APIRouter, Depends
-from requests import Session
-
-from app.api.get_db import get_db
-from app.auth.utils import require_role
-from app.crud.role import get_all_roles
+from app.api.dependencies import require_role
 from app.db.models import User
+from app.repositories.role_repository import RoleRepository
+import logging
+
+logger = logging.getLogger("app.roles")
 
 role_router = APIRouter(prefix="/roles", tags=["Roles"])
 
+
 @role_router.get("")
-def get_all_users(_: User = Depends(require_role(["admin"])), db: Session = Depends(get_db)):
-    return get_all_roles(db)
+def get_all_roles(
+    _: User = Depends(require_role(["admin"])), role_repo: RoleRepository = Depends()
+):
+    return role_repo.get_all_roles()

@@ -1,62 +1,88 @@
-from app.auth.utils import require_role
-from app.crud.role import get_role
-from app.crud.room import convert_times, create_room_in_db, delete_room_in_db, get_available_rooms_capacity, get_available_rooms_time, get_room
-from app.api.get_db import get_db
-from app.auth.utils import get_current_user
-from app.db.models import Room, User
+from app.api.dependencies import get_current_user, require_role
+from app.db.models import User
 from app.schemas.room import GetRooms, RoomCreate
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Query
+from app.services.room_service import RoomService
+import logging
+
+logger = logging.getLogger("app.rooms")
 
 room_router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
+
 @room_router.get("")
-def get_available_rooms(room: GetRooms = Depends(), _: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    # get available rooms
-    if room.start_datestr and room.end_datestr:
-        # check times are valid
-        valid_times = convert_times(room.start_datestr, room.end_datestr)
-        available_rooms = get_available_rooms_time(db, room.min_capacity, valid_times["start_datetime"], valid_times["end_datetime"])
-    else:
-        # get rooms based on time and capacity = 0
-        available_rooms = get_available_rooms_capacity(db, room.min_capacity)
-    return {
-        "filters": room,
-        "rooms": available_rooms
-    }
-    
-    
-@room_router.post("")
-def create_room(room: RoomCreate, _: User = Depends(require_role(["admin"])), db: Session = Depends(get_db)):
-    # check the room doesn't exist
-    if get_room(db, room.room_number):
-       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Room with room number {room.room_number} already exists")
-    # get the roles
-    role_list = []
-    if room.roles:
-        for role_name in room.roles:
-            role = get_role(db, role_name)
-            if not role:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Role '{role_name}' not found")
-            role_list.append(role)
-    new_room = Room(
-        room_number = room.room_number,
-        capacity = room.capacity,
-        description = room.description,
-        request_only = room.request_only,
-        allowed_roles = role_list,
+def get_available_rooms(
+    current_user: User = Depends(get_current_user),
+    room_service: RoomService = Depends(),
+    filters: GetRooms = Query(),
+):
+    logger.info(
+        f"User {current_user.id} searching for available rooms with capacity {filters.min_capacity}"
     )
-    new_room = create_room_in_db(db, new_room)
-    return new_room
+
+    try:
+        # get available rooms
+        rooms = room_service.get_available_rooms_time(
+            filters.min_capacity, filters.start_datetime, filters.end_datetime
+        )
+
+        # Add permission checking to each room
+        for room_dict in rooms:
+            room_dict["sufficient_roles"] = RoomService.check_user_has_room_permissions(
+                room_dict, current_user
+            )
+
+        logger.info(f"Found {len(rooms)} available rooms for user {current_user.id}")
+        return {"filters": filters, "rooms": rooms}
+
+    except Exception as e:
+        logger.error(
+            f"Failed to get available rooms for user {current_user.id}: {str(e)}"
+        )
+        raise
+
+
+@room_router.get("/all")
+def get_all_rooms(
+    current_user: User = Depends(get_current_user),
+    room_service: RoomService = Depends(),
+):
+    logger.info(f"User {current_user.id} fetching all rooms")
+
+    try:
+        result = room_service.get_all_rooms()
+        logger.debug(f"Retrieved all rooms for user {current_user.id}")
+        return result
+    except Exception as e:
+        logger.error(f"Failed to get all rooms for user {current_user.id}: {str(e)}")
+        raise
+
+
+@room_router.post("")
+def create_room(
+    room: RoomCreate,
+    _: User = Depends(require_role(["admin"])),
+    room_service: RoomService = Depends(),
+):
+    logger.info(f"Admin creating new room: {room.room_number}")
+
+    result = room_service.create_room(room)
+    logger.info(f"Room {room.room_number} created successfully")
+    return result
+
 
 @room_router.delete("/{room_number}")
-def delete_room(room_number: str, _: User = Depends(require_role(["admin"])), db: Session = Depends(get_db)):
-    room = get_room(db, room_number)
-    if not room:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Room with room number {room_number} not found")
-    
-    try: 
-        delete_room_in_db(db, room)
-        return {"message": f"Room {room_number} deleted successfully", "room_number": room_number}
+def delete_room(
+    room_number: str,
+    _: User = Depends(require_role(["admin"])),
+    room_service: RoomService = Depends(),
+):
+    logger.info(f"Admin deleting room: {room_number}")
+
+    try:
+        result = room_service.delete_room(room_number)
+        logger.info(f"Room {room_number} deleted successfully")
+        return result
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error occurred deleting Room {room_number}")
+        logger.error(f"Failed to delete room {room_number}: {str(e)}")
+        raise

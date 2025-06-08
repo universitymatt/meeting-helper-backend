@@ -1,28 +1,22 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 from typing import List, Optional
-from app.schemas.booking import Times
+from app.schemas.times import Times
 
-class GetRooms(BaseModel):
+
+class GetRooms(Times):
     min_capacity: int = 0
-    start_datestr: Optional[str] = None
-    end_datestr: Optional[str] = None
 
-    @model_validator(mode="after")
-    def check_times_together(self) -> 'GetRooms':
-        if (self.start_datestr is None) != (self.end_datestr is None):
-            raise ValueError("Both start_datestr and end_datestr must be provided together")
-        return self
 
 class RoomCreate(BaseModel):
-  room_number: str
-  capacity: int
-  description: str | None = Field(default = None)
-  request_only: bool | None = Field(default = None)
-  roles: List[str] | None = Field(default = None)
+    room_number: str
+    capacity: int
+    description: str | None = Field(default=None)
+    request_only: bool | None = Field(default=None)
+    roles: List[str] | None = Field(default=None)
 
 
 class RoomOut(BaseModel):
-  room_number: str
-  capacity: int
-  description: Optional[str]
-  request_only: bool
+    room_number: str
+    capacity: int
+    description: Optional[str]
+    request_only: bool

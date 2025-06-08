@@ -22,4 +22,5 @@ def enable_foreign_keys(dbapi_connection, connection_record):
         cursor.close()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
