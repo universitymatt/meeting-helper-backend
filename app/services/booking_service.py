@@ -79,6 +79,7 @@ class BookingService:
             booking.room_number,
             desired_times.start_datetime,
             desired_times.end_datetime,
+            booking.id,
         ):
             raise HTTPException(
                 status_code=400,

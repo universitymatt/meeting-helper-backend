@@ -50,11 +50,16 @@ class RoomRepository(BaseRepository):
         )
 
     def room_is_available(
-        self, room_number: str, desired_start: datetime, desired_end: datetime
+        self,
+        room_number: str,
+        desired_start: datetime,
+        desired_end: datetime,
+        booking_id: int = None,
     ) -> bool:
         conflicting_bookings = (
             self.db.query(Booking)
             .filter(
+                Booking.id != booking_id,
                 Booking.room_number == room_number,
                 Booking.accepted == True,
                 Booking.start_time < desired_end,
