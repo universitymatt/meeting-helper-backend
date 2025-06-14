@@ -10,7 +10,7 @@ from app.repositories.user_repository import UserRepository
 import app.config as Config
 import jwt
 
-from app.schemas.user import PutRoles
+from app.schemas.user import PutRoles, UserCreate
 from app.services.exception_wrapper import handle_db_exceptions
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -62,6 +62,10 @@ class UserService:
             token = token.decode("utf-8")
 
         return token
+
+    @handle_db_exceptions
+    def get_user_by_username(self, username: str):
+        return self.user_repo.get_user_by_username(username)
 
     @handle_db_exceptions
     def authenticate_user(self, username: str, password: str):
