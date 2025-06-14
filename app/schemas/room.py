@@ -13,10 +13,3 @@ class RoomCreate(BaseModel):
     description: str | None = Field(default=None)
     request_only: bool | None = Field(default=None)
     roles: List[str] | None = Field(default=None)
-
-
-class RoomOut(BaseModel):
-    room_number: str
-    capacity: int
-    description: Optional[str]
-    request_only: bool

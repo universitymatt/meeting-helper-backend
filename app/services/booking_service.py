@@ -36,8 +36,6 @@ class BookingService:
             )
 
         # Check user has at least 1 of the allowed roles to book the room if the room has allowed roles
-        print(current_user.role_names)
-        print(room.allowed_roles)
         if room.allowed_role_names and not any(
             role in current_user.role_names for role in room.allowed_role_names
         ):

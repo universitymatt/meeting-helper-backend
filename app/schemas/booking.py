@@ -1,10 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Annotated
 from app.schemas.times import Times
 
 
 class BookingCreate(Times):
-    room_number: str
+    room_number: Annotated[str, Field(min_length=1)]
 
 
 class BookingRequestResponse(BaseModel):

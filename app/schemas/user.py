@@ -1,10 +1,12 @@
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import Annotated, List
+
 
 class UserCreate(BaseModel):
-    username: str
-    password: str
-    name: str
+    username: Annotated[str, Field(min_length=1)]
+    password: Annotated[str, Field(min_length=1)]
+    name: Annotated[str, Field(min_length=1)]
+
 
 class UserOut(BaseModel):
     name: str
@@ -14,6 +16,7 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 class PutRoles(BaseModel):
-    username: str
+    username: Annotated[str, Field(min_length=1)]
     roles: List[str]
