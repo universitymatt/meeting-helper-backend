@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 import random
-from datetime import datetime, timedelta
-import random
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.db.models import Room, User, Booking, Role, user_role_table
 
@@ -13,33 +12,37 @@ def hash_password(password: str):
     return pwd_context.hash(password)
 
 
-def seed_database():
+def seed_data_if_needed():
+    """Only seeds if no users exist."""
     db = SessionLocal()
-
     try:
-        # Clear existing data (optional - remove if you want to keep existing data)
-        print("Clearing existing data...")
-        # Clear the association table first
-        db.execute(user_role_table.delete())
-        db.query(Booking).delete()
-        db.query(User).delete()
-        db.query(Room).delete()
-        db.query(Role).delete()
+        if db.query(User).first():
+            print("Database already seeded. Skipping...")
+            return
+        seed_database(db, clear=True)
+    finally:
+        db.close()
+
+
+def seed_database(db: Session = None, clear: bool = False):
+    """The actual seeding logic (callable with an open db session)."""
+    db = db or SessionLocal()
+    try:
+        if clear:
+            print("Clearing existing data...")
+            db.execute(user_role_table.delete())
+            db.query(Booking).delete()
+            db.query(User).delete()
+            db.query(Room).delete()
+            db.query(Role).delete()
 
         # Seed Roles
-        print("Creating roles...")
         roles_data = ["admin", "manager", "employee", "guest"]
-
-        roles = []
-        for role_name in roles_data:
-            role = Role(role=role_name)
-            roles.append(role)
-            db.add(role)
-
+        roles = [Role(role=role) for role in roles_data]
+        db.add_all(roles)
         db.commit()
 
         # Seed Rooms
-        print("Creating rooms...")
         rooms_data = [
             {
                 "room_number": "A101",
@@ -90,17 +93,11 @@ def seed_database():
                 "request_only": False,
             },
         ]
-
-        rooms = []
-        for room_data in rooms_data:
-            room = Room(**room_data)
-            rooms.append(room)
-            db.add(room)
-
+        rooms = [Room(**room_data) for room_data in rooms_data]
+        db.add_all(rooms)
         db.commit()
 
         # Seed Users
-        print("Creating users...")
         users_data = [
             {"name": "Admin User", "username": "admin", "roles": ["admin"]},
             {
@@ -121,172 +118,85 @@ def seed_database():
             {"name": "Grace Lee", "username": "glee", "roles": ["employee"]},
             {"name": "Guest User", "username": "guest", "roles": ["guest"]},
         ]
-
         users = []
         for user_data in users_data:
-            # Create user with hashed password (using username as password for demo)
             user = User(
                 name=user_data["name"],
                 username=user_data["username"],
-                hashed_password=hash_password(
-                    user_data["username"]
-                ),  # Simple demo password
+                hashed_password=hash_password(user_data["username"]),
             )
             users.append(user)
             db.add(user)
-
         db.commit()
 
-        # Assign roles to users using the association table
-        print("Assigning roles to users...")
+        # Assign roles
         for i, user_data in enumerate(users_data):
             user = users[i]
             for role_name in user_data["roles"]:
-                # Insert into association table
-                stmt = user_role_table.insert().values(user_id=user.id, role=role_name)
-                db.execute(stmt)
-
+                db.execute(
+                    user_role_table.insert().values(user_id=user.id, role=role_name)
+                )
         db.commit()
 
         # Seed Bookings
-        print("Creating sample bookings...")
         base_date = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
-
         bookings_data = [
-            # Today's bookings
-            {
-                "user_idx": 1,
-                "room": "A101",
-                "start_offset": 0,
-                "duration": 2,
-            },  # 9-11 AM
-            {
-                "user_idx": 2,
-                "room": "A102",
-                "start_offset": 1,
-                "duration": 1,
-            },  # 10-11 AM
-            {
-                "user_idx": 3,
-                "room": "B201",
-                "start_offset": 3,
-                "duration": 3,
-            },  # 12-3 PM
-            {"user_idx": 4, "room": "C302", "start_offset": 5, "duration": 2},  # 2-4 PM
-            # Tomorrow's bookings
-            {
-                "user_idx": 5,
-                "room": "A101",
-                "start_offset": 24,
-                "duration": 1,
-            },  # Tomorrow 9-10 AM
-            {
-                "user_idx": 6,
-                "room": "B202",
-                "start_offset": 26,
-                "duration": 2,
-            },  # Tomorrow 11 AM-1 PM
-            {
-                "user_idx": 7,
-                "room": "D401",
-                "start_offset": 28,
-                "duration": 4,
-            },  # Tomorrow 1-5 PM
-            # Day after tomorrow
-            {
-                "user_idx": 1,
-                "room": "C301",
-                "start_offset": 48,
-                "duration": 6,
-            },  # Day after 9 AM-3 PM
-            {
-                "user_idx": 8,
-                "room": "A102",
-                "start_offset": 50,
-                "duration": 2,
-            },  # Day after 11 AM-1 PM
-            # Next week bookings
-            {
-                "user_idx": 2,
-                "room": "D402",
-                "start_offset": 168,
-                "duration": 3,
-            },  # Next week Monday
-            {
-                "user_idx": 3,
-                "room": "B201",
-                "start_offset": 192,
-                "duration": 4,
-            },  # Next week Tuesday
+            {"user_idx": 1, "room": "A101", "start_offset": 0, "duration": 2},
+            {"user_idx": 2, "room": "A102", "start_offset": 1, "duration": 1},
+            {"user_idx": 3, "room": "B201", "start_offset": 3, "duration": 3},
+            {"user_idx": 4, "room": "C302", "start_offset": 5, "duration": 2},
+            {"user_idx": 5, "room": "A101", "start_offset": 24, "duration": 1},
+            {"user_idx": 6, "room": "B202", "start_offset": 26, "duration": 2},
+            {"user_idx": 7, "room": "D401", "start_offset": 28, "duration": 4},
+            {"user_idx": 1, "room": "C301", "start_offset": 48, "duration": 6},
+            {"user_idx": 8, "room": "A102", "start_offset": 50, "duration": 2},
+            {"user_idx": 2, "room": "D402", "start_offset": 168, "duration": 3},
+            {"user_idx": 3, "room": "B201", "start_offset": 192, "duration": 4},
         ]
 
-        for booking_data in bookings_data:
-            start_time = base_date + timedelta(hours=booking_data["start_offset"])
-            end_time = start_time + timedelta(hours=booking_data["duration"])
-
+        for bd in bookings_data:
+            start_time = base_date + timedelta(hours=bd["start_offset"])
+            end_time = start_time + timedelta(hours=bd["duration"])
             booking = Booking(
-                user_id=users[booking_data["user_idx"]].id,
-                room_number=booking_data["room"],
+                user_id=users[bd["user_idx"]].id,
+                room_number=bd["room"],
                 start_time=start_time,
                 end_time=end_time,
                 datetime_made=datetime.now(),
             )
             db.add(booking)
-
         db.commit()
 
-        # Add some random future bookings
-        print("Creating additional random bookings...")
+        # Additional random bookings
         for _ in range(15):
-            user = random.choice(
-                users[1:8]
-            )  # Don't use admin or guest for random bookings
+            user = random.choice(users[1:8])
             room = random.choice(rooms)
-
-            # Random date in next 30 days
             days_ahead = random.randint(1, 30)
-            hour = random.randint(8, 16)  # 8 AM to 4 PM
-            duration = random.randint(1, 4)  # 1-4 hours
-
+            hour = random.randint(8, 16)
+            duration = random.randint(1, 4)
             start_time = base_date + timedelta(days=days_ahead, hours=hour - 9)
             end_time = start_time + timedelta(hours=duration)
-
             booking = Booking(
                 user_id=user.id,
                 room_number=room.room_number,
                 start_time=start_time,
                 end_time=end_time,
+                datetime_made=datetime.now(),
             )
             db.add(booking)
-
         db.commit()
 
-        print("Database seeded successfully!")
-        print(f"Created:")
-        print(f"  - {len(roles)} roles")
-        print(f"  - {len(rooms)} rooms")
-        print(f"  - {len(users)} users")
-        print(f"  - {db.query(Booking).count()} bookings")
-        print(
-            f"  - {len(db.execute(user_role_table.select()).fetchall())} role assignments"
-        )
-
-        # Print some sample login info
-        print("\nSample login credentials (username/password):")
-        print("  - admin/admin (Admin)")
-        print("  - jmanager/jmanager (Manager)")
-        print("  - asmith/asmith (Employee)")
-        print("  - guest/guest (Guest)")
-
+        print("Database seeded.")
     except Exception as e:
-        print(f"Error seeding database: {e}")
         db.rollback()
-        raise
+        raise e
     finally:
-        db.close()
+        if not db:
+            db.close()
 
 
+# For CLI usage
 if __name__ == "__main__":
-    print("Starting database seeding...")
-    seed_database()
-    print("Seeding completed!")
+    print("Seeding database...")
+    seed_database(clear=True)
+    print("Done.")
