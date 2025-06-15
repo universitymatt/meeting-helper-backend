@@ -6,6 +6,7 @@ from app.api.booking_controller import booking_router
 from app.api.room_controller import room_router
 from app.api.user_controller import user_router
 from app.api.role_controller import role_router
+from app.api.health import health_router
 from app.db.database import Base, engine
 from app.db.seed_db import seed_data_if_needed
 
@@ -35,3 +36,4 @@ app.include_router(booking_router)
 app.include_router(room_router)
 app.include_router(user_router)
 app.include_router(role_router)
+app.include_router(health_router)
