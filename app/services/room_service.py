@@ -75,7 +75,7 @@ class RoomService:
         if self.room_repo.get_room(room.room_number):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Room with room number already exists",
+                detail="Room with room number already exists",
             )
         # get the roles
         role_list = []

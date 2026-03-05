@@ -10,7 +10,7 @@ from app.repositories.user_repository import UserRepository
 import app.config as Config
 import jwt
 
-from app.schemas.user import PutRoles, UserCreate
+from app.schemas.user import PutRoles
 from app.services.exception_wrapper import handle_db_exceptions
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -54,12 +54,7 @@ class UserService:
             else timedelta(seconds=Config.ACCESS_TOKEN_EXPIRE_SECONDS)
         )
         payload["jti"] = str(uuid.uuid4())
-        token = jwt.encode(
-            payload=payload, key=Config.SECRET_KEY, algorithm=Config.ALGORITHM
-        )
-
-        if isinstance(token, bytes):
-            token = token.decode("utf-8")
+        token = jwt.encode(payload, key=Config.SECRET_KEY, algorithm=Config.ALGORITHM)
 
         return token
 
