@@ -2,7 +2,8 @@ name: CI/CD Pipeline
 
 on:
   pull_request:
-    branches: ["*"]
+    branches:
+      - main
 
 jobs:
   lint:
@@ -55,15 +56,18 @@ jobs:
       - name: Build Docker image
         run: docker build -t meeting-helper:${{ github.sha }} .
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Run Trivy CVE scan
-        uses: aquasecurity/trivy-action@0.33.1
-        with:
-          image-ref: "meeting-helper:${{ github.sha }}"
-          format: "table"
-          exit-code: "1"
-          ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
+        run: |
+          trivy image \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --vuln-type os,library \
+            --severity CRITICAL,HIGH \
+            meeting-helper:${{ github.sha }}
 
   deploy:
     name: Deploy to Render
