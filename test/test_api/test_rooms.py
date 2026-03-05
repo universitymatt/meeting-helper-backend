@@ -23,8 +23,8 @@ class TestGetAvailableRoomsEndpoint:
                 "/rooms",
                 params={
                     "min_capacity": 5,
-                    "start_datetime": "2026-01-01T10:00:00",
-                    "end_datetime": "2026-01-01T12:00:00",
+                    "start_datetime": "2027-01-01T10:00:00",
+                    "end_datetime": "2027-01-01T12:00:00",
                 },
             )
 

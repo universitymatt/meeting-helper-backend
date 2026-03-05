@@ -54,12 +54,7 @@ class UserService:
             else timedelta(seconds=Config.ACCESS_TOKEN_EXPIRE_SECONDS)
         )
         payload["jti"] = str(uuid.uuid4())
-        token = jwt.encode(
-            payload=payload, key=Config.SECRET_KEY, algorithm=Config.ALGORITHM
-        )
-
-        if isinstance(token, bytes):
-            token = token.decode("utf-8")
+        token = jwt.encode(payload, key=Config.SECRET_KEY, algorithm=Config.ALGORITHM)
 
         return token
 

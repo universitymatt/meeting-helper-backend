@@ -42,7 +42,7 @@ jobs:
           pip install pytest pytest-asyncio httpx
 
       - name: Run pytest
-        run: pytest tests/ -v
+        run: pytest -v
 
   build-and-scan:
     name: Build & Trivy Scan

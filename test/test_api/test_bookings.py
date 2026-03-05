@@ -20,8 +20,8 @@ class TestCreateBookingEndpoint:
 
         booking_data = {
             "room_number": "101",
-            "start_datetime": "2026-01-01T10:00:00",
-            "end_datetime": "2026-01-01T12:00:00",
+            "start_datetime": "2027-01-01T10:00:00",
+            "end_datetime": "2027-01-01T12:00:00",
         }
         response = client.post("/bookings", json=booking_data)
 
@@ -47,8 +47,8 @@ class TestCreateBookingRequestEndpoint:
 
         booking_data = {
             "room_number": "101",
-            "start_datetime": "2026-01-01T10:00:00",
-            "end_datetime": "2026-01-01T12:00:00",
+            "start_datetime": "2027-01-01T10:00:00",
+            "end_datetime": "2027-01-01T12:00:00",
         }
         response = client.post("/bookings/request", json=booking_data)
 
@@ -200,8 +200,8 @@ class TestUpdateBookingEndpoint:
         app.dependency_overrides[get_current_user] = lambda: mock_user
 
         update_data = {
-            "start_datetime": "2026-01-01T14:00:00",
-            "end_datetime": "2026-01-01T16:00:00",
+            "start_datetime": "2027-01-01T14:00:00",
+            "end_datetime": "2027-01-01T16:00:00",
         }
         response = client.put("/bookings/1", json=update_data)
 
@@ -220,8 +220,8 @@ class TestUpdateBookingEndpoint:
         app.dependency_overrides[get_current_user] = lambda: mock_user
 
         update_data = {
-            "start_datetime": "2026-01-01T14:00:00",
-            "end_datetime": "2026-01-01T16:00:00",
+            "start_datetime": "2027-01-01T14:00:00",
+            "end_datetime": "2027-01-01T16:00:00",
         }
         response = client.put("/bookings/999", json=update_data)
 

@@ -9,6 +9,7 @@ from app.api.role_controller import role_router
 from app.api.health import health_router
 from app.db.database import Base, engine
 from app.db.seed_db import seed_data_if_needed
+import app.config as Config
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,7 +26,7 @@ app = FastAPI(lifespan=lifespan)
 # Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://universitymatt.github.io"],
+    allow_origins=[Config.FRONTED_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
