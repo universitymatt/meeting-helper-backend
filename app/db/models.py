@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Table
-from typing import List
+from typing import List, Optional
 from app.db.database import Base
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from datetime import datetime
@@ -58,6 +58,8 @@ class User(Base):
     roles: Mapped[List["Role"]] = relationship(
         secondary=user_role_table, back_populates="users"
     )
+    failed_login_attempts: int = Column(Integer, default=0)
+    locked_until: Optional[datetime] = Column(DateTime, nullable=True)
 
     @property
     def role_names(self) -> List[str]:
