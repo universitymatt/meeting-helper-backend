@@ -1,0 +1,79 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install flake8
+
+      - name: Run flake8
+        run: flake8 app/ --max-line-length=120 --ignore=E501,W503
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
+
+      - name: Run pytest
+        run: pytest tests/ -v
+
+  build-and-scan:
+    name: Build & Trivy Scan
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t meeting-helper:${{ github.sha }} .
+
+      - name: Run Trivy CVE scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: "meeting-helper:${{ github.sha }}"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: build-and-scan
+    if: github.base_ref == 'main'
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" \
+            --fail \
+            --silent \
+            --show-error
