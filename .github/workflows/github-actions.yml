@@ -28,7 +28,7 @@ jobs:
         run: flake8 app/ --max-line-length=120 --ignore=E712
 
   test:
-    name: Run Tests
+    name: Run Tests & Coverage
     runs-on: ubuntu-latest
     needs: lint
     steps:
@@ -43,15 +43,34 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
+          pip install pytest pytest-asyncio httpx pytest-cov
 
-      - name: Run pytest
-        run: pytest -v
+      - name: Run pytest with coverage
+        run: pytest --cov --cov-report=term-missing
+
+  bandit:
+    name: Bandit Security Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit
+        run: bandit -r app/ -ll
 
   build-and-scan:
     name: Build & Trivy Scan
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, bandit]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
