@@ -67,10 +67,22 @@ jobs:
       - name: Run Bandit
         run: bandit -r app/ -ll
 
+  semgrep:
+    name: Semgrep OWASP Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: semgrep/semgrep-action@v1
+        with:
+          config: p/owasp-top-ten
+
   build-and-scan:
     name: Build & Trivy Scan
     runs-on: ubuntu-latest
-    needs: [test, bandit]
+    needs: [test, bandit, semgrep]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
