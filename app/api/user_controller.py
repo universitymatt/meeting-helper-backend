@@ -20,18 +20,24 @@ def login(
 ):
     logger.info(f"Login attempt for username: {form_data.username}")
 
-    user = user_service.authenticate_user(form_data.username, form_data.password)
+    try:
+        user = user_service.authenticate_user(form_data.username, form_data.password)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during login for {form_data.username}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error during login",
+        )
+
     if not user:
-        logger.warning(f"Failed login attempt for username: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect username or password",
         )
 
-    logger.info(f"Successful login for user: {user.username}")
     access_token = UserService.create_token(user_data={"username": user.username})
-
-    # set access token in http cookie rather than returning in response
     response.set_cookie(
         key="access_token",
         value=f"bearer {access_token}",
@@ -148,6 +154,8 @@ def put_roles(
             f"Successfully updated roles for user {user.username}: {user.role_names}"
         )
         return {"message": f"Roles {user.role_names} updated for user {user.username}"}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error updating roles for user {user_roles.username}: {str(e)}")
         raise HTTPException(

@@ -65,10 +65,33 @@ class UserService:
     @handle_db_exceptions
     def authenticate_user(self, username: str, password: str):
         user = self.user_repo.get_user_by_username(username)
+
         if not user:
-            return None
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Incorrect username or password",
+            )
+
+        if user.locked_until and user.locked_until > datetime.now():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account locked due to too many failed attempts. Try again later",
+            )
+
         if not UserService.verify_password(password, user.hashed_password):
-            return None
+            user.failed_login_attempts += 1
+            if user.failed_login_attempts >= 5:
+                user.locked_until = datetime.now() + timedelta(minutes=15)
+                user.failed_login_attempts = 0
+            self.user_repo.save(user)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Incorrect username or password",
+            )
+
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        self.user_repo.save(user)
         return user
 
     @handle_db_exceptions

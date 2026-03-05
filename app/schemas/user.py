@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Annotated, List
 
 
@@ -9,12 +9,11 @@ class UserCreate(BaseModel):
 
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     name: str
     username: str
     role_names: List[str]
-
-    class Config:
-        from_attributes = True
 
 
 class PutRoles(BaseModel):

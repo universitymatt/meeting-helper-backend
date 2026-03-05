@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Annotated
 from app.schemas.times import Times
 
@@ -9,6 +9,8 @@ class BookingCreate(Times):
 
 
 class BookingRequestResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     username: str
@@ -17,6 +19,3 @@ class BookingRequestResponse(BaseModel):
     accepted: bool
     room_number: str
     datetime_made: datetime
-
-    class Config:
-        from_attributes = True

@@ -1,4 +1,5 @@
 .venv
 .env
+.coverage
 app.db
 *__pycache__*

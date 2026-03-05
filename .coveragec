@@ -1,0 +1,10 @@
+[run]
+source = app
+omit =
+    app/db/database.py
+    app/db/seed_db.py
+    app/main.py
+
+[report]
+fail_under = 75
+show_missing = True
