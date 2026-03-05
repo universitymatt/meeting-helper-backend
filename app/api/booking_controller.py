@@ -98,7 +98,7 @@ def get_all_booking_requests(
 ):
     logger.info("Admin fetching all booking requests")
     result = booking_service.get_all_requests()
-    logger.debug(f"Retrieved booking requests")
+    logger.debug("Retrieved booking requests")
     return result
 
 

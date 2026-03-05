@@ -3,7 +3,6 @@ from typing import List
 from fastapi import HTTPException
 from sqlalchemy.orm import joinedload
 from app.db.models import Booking
-from app.schemas.booking import BookingRequestResponse
 from app.repositories.base_repository import BaseRepository
 from app.schemas.times import Times
 
@@ -61,8 +60,9 @@ class BookingRepository(BaseRepository):
                 "id": booking.id,
                 "message": f"Successfully deleted booking with id {booking.id}",
             }
-        except:
+        except Exception as e:
             self.db.rollback()
             raise HTTPException(
-                status_code=500, detail="Database error occurred while deleting booking"
+                status_code=500,
+                detail=f"Database error occurred while deleting booking: {str(e)}",
             )

@@ -1,7 +1,5 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
-import os
 import sqlite3
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"

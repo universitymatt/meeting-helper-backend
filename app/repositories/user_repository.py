@@ -2,6 +2,7 @@ from typing import List
 from app.repositories.base_repository import BaseRepository
 from app.db.models import User
 
+
 class UserRepository(BaseRepository):
     """User repository containing methods for interacting with users in the database"""
 
@@ -16,5 +17,3 @@ class UserRepository(BaseRepository):
 
     def get_all_users_from_db(self) -> List[User]:
         return self.db.query(User).all()
-    
-    

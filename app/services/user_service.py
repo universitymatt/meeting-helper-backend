@@ -10,7 +10,7 @@ from app.repositories.user_repository import UserRepository
 import app.config as Config
 import jwt
 
-from app.schemas.user import PutRoles, UserCreate
+from app.schemas.user import PutRoles
 from app.services.exception_wrapper import handle_db_exceptions
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
