@@ -37,7 +37,7 @@ def seed_database(db: Session = None, clear: bool = False):
             db.query(Role).delete()
 
         # Seed Roles
-        roles_data = ["admin", "manager", "employee", "guest"]
+        roles_data = ["admin", "human_resources", "technology", "data_science"]
         roles = [Role(role=role) for role in roles_data]
         db.add_all(roles)
         db.commit()
@@ -49,48 +49,71 @@ def seed_database(db: Session = None, clear: bool = False):
                 "capacity": 10,
                 "description": "Small conference room with projector",
                 "request_only": False,
+                "allowed_roles": [
+                    "admin",
+                    "human_resources",
+                    "technology",
+                    "data_science",
+                ],
             },
             {
                 "room_number": "A102",
                 "capacity": 6,
                 "description": "Meeting room with whiteboard",
                 "request_only": False,
+                "allowed_roles": [
+                    "admin",
+                    "human_resources",
+                    "technology",
+                    "data_science",
+                ],
             },
             {
                 "room_number": "B201",
                 "capacity": 20,
                 "description": "Large conference room with video conferencing",
                 "request_only": True,
+                "allowed_roles": ["admin", "technology", "data_science"],
             },
             {
                 "room_number": "B202",
                 "capacity": 4,
                 "description": "Small huddle room",
                 "request_only": False,
+                "allowed_roles": [
+                    "admin",
+                    "human_resources",
+                    "technology",
+                    "data_science",
+                ],
             },
             {
                 "room_number": "C301",
                 "capacity": 50,
                 "description": "Main presentation hall",
                 "request_only": True,
+                "allowed_roles": ["admin"],
             },
             {
                 "room_number": "C302",
                 "capacity": 8,
                 "description": "Training room with computers",
                 "request_only": False,
+                "allowed_roles": ["admin", "technology", "data_science"],
             },
             {
                 "room_number": "D401",
                 "capacity": 12,
                 "description": "Boardroom with executive setup",
                 "request_only": True,
+                "allowed_roles": ["admin", "human_resources"],
             },
             {
                 "room_number": "D402",
                 "capacity": 15,
                 "description": "Workshop room with flexible seating",
                 "request_only": False,
+                "allowed_roles": ["admin", "human_resources", "data_science"],
             },
         ]
         rooms = [Room(**room_data) for room_data in rooms_data]
@@ -101,22 +124,26 @@ def seed_database(db: Session = None, clear: bool = False):
         users_data = [
             {"name": "Admin User", "username": "admin", "roles": ["admin"]},
             {
-                "name": "John Manager",
-                "username": "jmanager",
-                "roles": ["manager", "employee"],
+                "name": "John HR",
+                "username": "jhr",
+                "roles": ["human_resources"],
             },
-            {"name": "Alice Smith", "username": "asmith", "roles": ["employee"]},
-            {"name": "Bob Johnson", "username": "bjohnson", "roles": ["employee"]},
-            {"name": "Carol Davis", "username": "cdavis", "roles": ["employee"]},
-            {"name": "David Wilson", "username": "dwilson", "roles": ["employee"]},
+            {"name": "Alice Smith", "username": "asmith", "roles": ["technology"]},
+            {"name": "Bob Johnson", "username": "bjohnson", "roles": ["technology"]},
+            {"name": "Carol Davis", "username": "cdavis", "roles": ["data_science"]},
+            {"name": "David Wilson", "username": "dwilson", "roles": ["data_science"]},
             {
                 "name": "Eva Brown",
                 "username": "ebrown",
-                "roles": ["manager", "employee"],
+                "roles": ["human_resources", "technology"],
             },
-            {"name": "Frank Miller", "username": "fmiller", "roles": ["employee"]},
-            {"name": "Grace Lee", "username": "glee", "roles": ["employee"]},
-            {"name": "Guest User", "username": "guest", "roles": ["guest"]},
+            {"name": "Frank Miller", "username": "fmiller", "roles": ["technology"]},
+            {"name": "Grace Lee", "username": "glee", "roles": ["data_science"]},
+            {
+                "name": "HR Manager",
+                "username": "hrmanager",
+                "roles": ["human_resources"],
+            },
         ]
         users = []
         for user_data in users_data:
