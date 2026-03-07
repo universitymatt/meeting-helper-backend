@@ -6,10 +6,13 @@ from app.db.models import User
 class UserRepository(BaseRepository):
     """User repository containing methods for interacting with users in the database"""
 
-    def create_user(self, user: User) -> User:
-        self.db.add(user)
+    def save(self, user: User):
         self.db.commit()
         self.db.refresh(user)
+
+    def create_user(self, user: User) -> User:
+        self.db.add(user)
+        self.save(user)
         return user
 
     def get_user_by_username(self, username: str) -> User | None:
