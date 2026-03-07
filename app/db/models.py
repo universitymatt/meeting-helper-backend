@@ -50,7 +50,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(
         String, unique=True, index=True, nullable=False
     )
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String)
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime)
 
     bookings: Mapped[List["Booking"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
@@ -58,8 +60,6 @@ class User(Base):
     roles: Mapped[List["Role"]] = relationship(
         secondary=user_role_table, back_populates="users"
     )
-    failed_login_attempts: int = Column(Integer, default=0)
-    locked_until: Optional[datetime] = Column(DateTime, nullable=True)
 
     @property
     def role_names(self) -> List[str]:
