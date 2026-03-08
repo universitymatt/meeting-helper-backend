@@ -135,7 +135,11 @@ def seed_database(db: Session = None, clear: bool = False):
         # Seed Users
         users_data = [
             {"name": "Admin User", "username": "admin", "roles": ["admin"]},
-            {"name": "John HR", "username": "jhr", "roles": ["human_resources"]},
+            {
+                "name": "John HR",
+                "username": "jhr",
+                "roles": ["human_resources"],
+            },
             {"name": "Alice Smith", "username": "asmith", "roles": ["technology"]},
             {"name": "Bob Johnson", "username": "bjohnson", "roles": ["technology"]},
             {"name": "Carol Davis", "username": "cdavis", "roles": ["data_science"]},
