@@ -80,7 +80,7 @@ class UserService:
 
         if not UserService.verify_password(password, user.hashed_password):
             user.failed_login_attempts += 1
-            if user.failed_login_attempts >= 5:
+            if user.failed_login_attempts >= 3:
                 user.locked_until = datetime.now() + timedelta(minutes=15)
                 user.failed_login_attempts = 0
             self.user_repo.save(user)
